@@ -5,6 +5,7 @@ var hbjs = require("handbrake-js"),
 	fs = require("fs");
 
 function SEU() {
+	console.log("Initiating in", __dirname);
 	this.paths = {
 		encode: `${__dirname}/encode`,
 		encoded: `${__dirname}/encoded`,
@@ -12,15 +13,17 @@ function SEU() {
 		uploade: `${__dirname}/upload`,
 		uploaded: `${__dirname}/uploaded`
 	};
+	Object.keys(this.paths).forEach(path => {
+		let p = this.paths[path];
+		if (!fs.existsSync(p)){
+			fs.mkdirSync(p);
+		}
+	});
 	this.Watch();
 }
 
 SEU.prototype.Watch = function(){
-	Object.values(this.paths).forEach(path => {
-		if (!fs.existsSync(path)){
-			fs.mkdirSync(path);
-		}
-	});
+	console.log("Started.");
 	this.encode = chokidar.watch(this.paths.encode, { ignored: /[\/\\]\./, persistent: true });
 	this.upload = chokidar.watch(this.paths.upload, { ignored: /[\/\\]\./, persistent: true });
 	this.encode.on('add', filePath => {

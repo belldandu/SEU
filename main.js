@@ -4,7 +4,7 @@ var hbjs = require("handbrake-js"),
 	path = require("path"),
 	fs = require("fs");
 
-function Watch() {
+function SEU() {
 	this.paths = {
 		encode: `${__dirname}/encode`,
 		encoded: `${__dirname}/encoded`,
@@ -12,11 +12,18 @@ function Watch() {
 		uploade: `${__dirname}/upload`,
 		uploaded: `${__dirname}/uploaded`
 	};
-	self.Check(this.paths);
+	this.Watch();
+}
+
+SEU.prototype.Watch = function(){
+	Object.values(this.paths).forEach(path => {
+		if (!fs.existsSync(path)){
+			fs.mkdirSync(path);
+		}
+	});
 	this.encode = chokidar.watch(this.paths.encode, { ignored: /[\/\\]\./, persistent: true });
 	this.upload = chokidar.watch(this.paths.upload, { ignored: /[\/\\]\./, persistent: true });
-	var self = this;
-	this.encode.on('add', function(filePath) {
+	this.encode.on('add', filePath => {
 		var p = path.parse(filePath);
 		var options = {
 			input: filePath,
@@ -33,32 +40,24 @@ function Watch() {
 			"subtitle-burned": 1,
 			optimize: true
 		};
-		self.Encode(options);
+		this.Encode(options);
 	});
-	this.upload.on('add', function(filePath) {
-		self.Upload(filePath);
-	});
-}
-
-Watch.prototype.Check = (paths) => {
-	Object.values(paths).forEach(path => {
-		if (!fs.existsSync(path)){
-			fs.mkdirSync(path);
-		}
+	this.upload.on('add', filePath => {
+		this.Upload(filePath);
 	});
 }
 
-Watch.prototype.Encode = (options) => {
+SEU.prototype.Encode = function(options){
 	console.log("Settings Used:", options);
 	hbjs.spawn(options)
-		.on("output", function(stdout, stderr){
+		.on("output", (stdout, stderr) => {
 			// some shit
 		})
-		.on("error", function(err){
+		.on("error", err => {
 			throw err;
 			// invalid user input, no video found etc
 		})
-		.on("progress", function(progress){
+		.on("progress", progress => {
 			var log = `${progress.task}:`;
 			switch(progress.task){
 				case "Encoding":
@@ -79,7 +78,7 @@ Watch.prototype.Encode = (options) => {
 				console.log(log);
 			}
 		})
-		.on("complete", function(){
+		.on("complete", () => {
 			try{
 				//process.stdout.clearLine();
 				//process.stdout.cursorTo(0);
@@ -88,19 +87,19 @@ Watch.prototype.Encode = (options) => {
 				// Fuck you pm2
 			}
 			var p = path.parse(options.input);
-			fs.rename(options.input, path.normalize(p.dir+"/../encoded/"+p.base), function(err){
+			fs.rename(options.input, path.normalize(`${this.paths.encoded}/${p.base}`), err => {
 				if(err) throw err;
 			});
 			var p = path.parse(options.output);
-			fs.rename(options.output, path.normalize(p.dir+"/../upload/"+p.base), function(err){
+			fs.rename(options.output, path.normalize(`${this.paths.upload}/${p.base}`), err => {
 				if(err) throw err;
 			});
 		});
 }
 
-Watch.prototype.Upload = (filePath) => {
+SEU.prototype.Upload = function(filePath){
 	console.log("%s, is ready for upload.", filePath);
 	// TODO upload api stuff
 }
 
-exports.Watch = new Watch;
+exports.SEU = new SEU;

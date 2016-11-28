@@ -1,0 +1,31 @@
+{
+  "name": "seu",
+  "version": "0.1.0",
+  "description": "Simple Encoding and Uploading",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/belldandu/SEU.git"
+  },
+  "keywords": [
+    "Simple",
+    "Encoding",
+    "Uploading",
+    "Handbrake",
+    "Polling",
+    "Nodejs"
+  ],
+  "author": "Belldandu",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/belldandu/SEU/issues"
+  },
+  "homepage": "https://github.com/belldandu/SEU#readme",
+  "dependencies": {
+    "chokidar": "^1.6.1",
+    "handbrake-js": "^2.1.0"
+  }
+}

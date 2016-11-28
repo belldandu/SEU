@@ -10,29 +10,36 @@ function SEU(path) {
 	};
 	console.log("Initiating in", path);
 	this.paths = {
-		encode: `${path}/encode`,
-		encoded: `${path}/encoded`,
-		encoding: `${path}/encoding`,
-		upload: `${path}/upload`,
-		uploaded: `${path}/uploaded`
+		dirs: {
+			root: path,
+			encode: `${path}/encode`,
+			encoded: `${path}/encoded`,
+			encoding: `${path}/encoding`,
+			upload: `${path}/upload`,
+			uploaded: `${path}/uploaded`,
+			config: `${path}/config`
+		},
+		files: {
+			config: `${path}/config/settings.json`
+		}
 	};
-	Object.keys(this.paths).forEach(dir => {
-		let p = this.paths[dir];
+	Object.keys(this.paths.dirs).forEach(dir => {
+		let p = this.paths.dirs[dir];
 		if (!fs.existsSync(p)){
-			fs.mkdirSync(p);
+			fs.mkdir(p, err => {
+				if(err){
+					throw err;
+				}
+			});
 		}
 	});
+	this.createConfig();
 }
 
-SEU.prototype.Watch = function(){
-	console.log("Started.");
-	this.encode = chokidar.watch(this.paths.encode, { ignored: /[\/\\]\./, persistent: true });
-	this.upload = chokidar.watch(this.paths.upload, { ignored: /[\/\\]\./, persistent: true });
-	this.encode.on('add', filePath => {
-		var p = path.parse(filePath);
-		var options = {
-			input: filePath,
-			output: path.normalize(`${this.paths.encoding}/${p.name}.mp4`),
+SEU.prototype.createConfig = function(){
+	var settings = {
+		extension: "mp4",
+		options: {
 			encoder: "x264",
 			"encoder-preset": "Slow",
 			quality: 22,
@@ -44,15 +51,51 @@ SEU.prototype.Watch = function(){
 			subtitle: "1",
 			"subtitle-burned": 1,
 			optimize: true
-		};
-		this.Encode(options);
+		}
+	};
+	if (!fs.existsSync(this.paths.files.config)){
+		fs.writeFile(this.paths.files.config, JSON.stringify(settings), err => {
+			if(err) {
+				throw err;
+			}
+		});
+		console.log(`Config file created in ${this.paths.files.config}\n please modify according to the settings you want and run again.`);
+		process.exit();
+	}
+}
+
+SEU.prototype.loadConfig = function(filePath){
+	fs.readFile(filePath, 'utf8', (err, data) => {
+		if (err) throw err;
+		this.settings = JSON.parse(data);
+	});
+}
+
+SEU.prototype.Watch = function(){
+	console.log("Started.");
+	this.encode = chokidar.watch(this.paths.dirs.encode, { ignored: /[\/\\]\./, persistent: true });
+	this.upload = chokidar.watch(this.paths.dirs.upload, { ignored: /[\/\\]\./, persistent: true });
+	this.config = chokidar.watch(this.paths.files.config, { ignored: /[\/\\]\./, persistent: true });
+	this.encode.on('add', filePath => {
+		this.Encode(filePath);
 	});
 	this.upload.on('add', filePath => {
 		this.Upload(filePath);
 	});
+	this.config.on('add', filePath => {
+		this.loadConfig(filePath);
+	}).on('modify', filePath => {
+		this.loadConfig(filePath);
+	});
 }
 
-SEU.prototype.Encode = function(options){
+SEU.prototype.Encode = function(filePath){
+	var p = path.parse(filePath);
+	var options = {
+		input: filePath,
+		output: path.normalize(`${this.paths.dirs.encoding}/${p.name}.${this.settings.extension}`),
+	}
+	options = Object.assign(options, this.settings.options);
 	console.log("Settings Used:", options);
 	hbjs.spawn(options)
 		.on("output", (stdout, stderr) => {
@@ -92,11 +135,11 @@ SEU.prototype.Encode = function(options){
 				// Fuck you pm2
 			}
 			var p = path.parse(options.input);
-			fs.rename(options.input, path.normalize(`${this.paths.encoded}/${p.base}`), err => {
+			fs.rename(options.input, path.normalize(`${this.paths.dirs.encoded}/${p.base}`), err => {
 				if(err) throw err;
 			});
 			var p = path.parse(options.output);
-			fs.rename(options.output, path.normalize(`${this.paths.upload}/${p.base}`), err => {
+			fs.rename(options.output, path.normalize(`${this.paths.dirs.upload}/${p.base}`), err => {
 				if(err) throw err;
 			});
 		});

@@ -7,7 +7,7 @@ Next make a file named index.js and place this into its contents. (Edit accordin
 ```
 let SEU = require("seu");
 // Initialize SEU to a path you wish to use for encoding files without the trailing slash ("/")
-var worker = SEU("/path/to/encode/stuff");
+var worker = new SEU("/path/to/encode/stuff");
 worker.Watch();
 ```
 Then type `node index.js`, after it says in the console that it started just drop a file into whatever path you specifieds new "encode" folder.

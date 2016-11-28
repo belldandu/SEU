@@ -104,4 +104,4 @@ SEU.prototype.Upload = function(filePath){
 	// TODO upload api stuff
 }
 
-module.exports = exports = SEU;
+module.exports = SEU;

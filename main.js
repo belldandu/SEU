@@ -4,17 +4,17 @@ var hbjs = require("handbrake-js"),
 	path = require("path"),
 	fs = require("fs");
 
-function SEU() {
-	console.log("Initiating in", __dirname);
+function SEU(path) {
+	console.log("Initiating in", path);
 	this.paths = {
-		encode: `${__dirname}/encode`,
-		encoded: `${__dirname}/encoded`,
-		encoding: `${__dirname}/encoding`,
-		uploade: `${__dirname}/upload`,
-		uploaded: `${__dirname}/uploaded`
+		encode: `${path}/encode`,
+		encoded: `${path}/encoded`,
+		encoding: `${path}/encoding`,
+		upload: `${path}/upload`,
+		uploaded: `${path}/uploaded`
 	};
-	Object.keys(this.paths).forEach(path => {
-		let p = this.paths[path];
+	Object.keys(this.paths).forEach(dir => {
+		let p = this.paths[dir];
 		if (!fs.existsSync(p)){
 			fs.mkdirSync(p);
 		}
@@ -105,4 +105,4 @@ SEU.prototype.Upload = function(filePath){
 	// TODO upload api stuff
 }
 
-exports.SEU = new SEU;
+module.exports = exports = SEU;

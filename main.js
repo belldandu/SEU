@@ -19,7 +19,6 @@ function SEU(path) {
 			fs.mkdirSync(p);
 		}
 	});
-	this.Watch();
 }
 
 SEU.prototype.Watch = function(){

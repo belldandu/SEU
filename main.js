@@ -5,6 +5,9 @@ var hbjs = require("handbrake-js"),
 	fs = require("fs");
 
 function SEU(path) {
+	if (!(this instanceof SEU)) {
+		throw new Error("SEU should be created with `new`")
+	};
 	console.log("Initiating in", path);
 	this.paths = {
 		encode: `${path}/encode`,

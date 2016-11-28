@@ -33,10 +33,10 @@ function SEU(path) {
 			});
 		}
 	});
-	this.createConfig();
+	this.createConfig(this.paths.files.config);
 }
 
-SEU.prototype.createConfig = function(){
+SEU.prototype.createConfig = function(filePath){
 	var settings = {
 		extension: "mp4",
 		options: {
@@ -53,13 +53,13 @@ SEU.prototype.createConfig = function(){
 			optimize: true
 		}
 	};
-	if (!fs.existsSync(this.paths.files.config)){
-		fs.writeFile(this.paths.files.config, JSON.stringify(settings), err => {
+	if (!fs.existsSync(filePath)){
+		fs.writeFile(filePath, JSON.stringify(settings), err => {
 			if(err) {
 				throw err;
 			}
 		});
-		console.log(`Config file created in ${this.paths.files.config}\n please modify according to the settings you want and run again.`);
+		console.log(`Config file created in ${filePath}\n please modify according to the settings you want and run again.`);
 		process.exit();
 	}
 }
